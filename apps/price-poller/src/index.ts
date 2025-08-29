@@ -39,7 +39,7 @@ function connect(): void {
   ws.on("message", async (message) => {
     try {
       const parsedData = JSON.parse(message.toString());
-      console.log(parsedData);
+      // console.log(parsedData);
 
       if (!parsedData.s || !parsedData.p) return; // ignore non-trade messages
       const buyPrice = (Number(parsedData.p) * 1.01).toString();
@@ -65,7 +65,7 @@ function connect(): void {
         ),
       };
 
-      console.log(tradeData);
+      // console.log(tradeData);
       await redisQueue.rPush("trades", JSON.stringify(queueData));
 
       await redisPub.publish("trades", JSON.stringify(tradeData));
