@@ -1,5 +1,6 @@
 import { createClient } from "redis";
 import WebSocket from "ws";
+import { splitDecimal } from "./utils";
 
 const redisQueue = createClient();
 const redisPub = createClient();
@@ -12,6 +13,13 @@ let subscriptions: string[] = [
   "solusdt@trade",
 ];
 
+/**
+ * Connects to the binance websocket stream.
+ * Subscribes to the assets from the subscriptions array.
+ * On recieving the trade data from binance sends to a queue and a pub sub.
+ *
+ * Also handles reconnecting to binance.
+ */
 function connect(): void {
   ws = new WebSocket("wss://stream.binance.com/ws");
 
@@ -31,15 +39,31 @@ function connect(): void {
   ws.on("message", async (message) => {
     try {
       const parsedData = JSON.parse(message.toString());
+
+      const buyPrice = (Number(parsedData.p) * 1.01).toString();
+      const { intValue: buyInt, decimals: buyDecimals } =
+        splitDecimal(buyPrice);
+      const sellPrice = (Number(parsedData.p) * 0.99).toString();
+      const { intValue: sellInt, decimals: sellDecimals } =
+        splitDecimal(sellPrice);
+
       if (!parsedData.s || !parsedData.p) return; // ignore non-trade messages
-      const tradeData = {
+      const queueData = {
         symbol: parsedData.s,
         price: parsedData.p,
         quantity: parsedData.q,
         timestamp: parsedData.T,
       };
 
-      await redisQueue.rPush("trades", JSON.stringify(tradeData));
+      const tradeData = {
+        symbol: parsedData.s,
+        buyPrice: buyInt,
+        sellPrice: sellInt,
+        decimals: buyDecimals > sellDecimals ? buyDecimals : sellDecimals,
+      };
+
+      console.log(tradeData);
+      await redisQueue.rPush("trades", JSON.stringify(queueData));
 
       await redisPub.publish("trades", JSON.stringify(tradeData));
     } catch (err) {
