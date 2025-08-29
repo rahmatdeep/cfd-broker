@@ -39,7 +39,9 @@ function connect(): void {
   ws.on("message", async (message) => {
     try {
       const parsedData = JSON.parse(message.toString());
+      console.log(parsedData);
 
+      if (!parsedData.s || !parsedData.p) return; // ignore non-trade messages
       const buyPrice = (Number(parsedData.p) * 1.01).toString();
       const { intValue: buyInt, decimals: buyDecimals } =
         splitDecimal(buyPrice);
@@ -47,19 +49,20 @@ function connect(): void {
       const { intValue: sellInt, decimals: sellDecimals } =
         splitDecimal(sellPrice);
 
-      if (!parsedData.s || !parsedData.p) return; // ignore non-trade messages
       const queueData = {
         symbol: parsedData.s,
         price: parsedData.p,
         quantity: parsedData.q,
-        timestamp: parsedData.T,
+        timestamp: parsedData.T.toString(),
       };
 
       const tradeData = {
         symbol: parsedData.s,
-        buyPrice: buyInt,
-        sellPrice: sellInt,
-        decimals: buyDecimals > sellDecimals ? buyDecimals : sellDecimals,
+        buyPrice: buyInt.toString(),
+        sellPrice: sellInt.toString(),
+        decimals: Number(
+          buyDecimals > sellDecimals ? buyDecimals : sellDecimals
+        ),
       };
 
       console.log(tradeData);
