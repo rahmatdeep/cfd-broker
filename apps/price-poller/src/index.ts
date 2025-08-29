@@ -2,6 +2,7 @@ import { createClient } from "redis";
 import WebSocket from "ws";
 
 const redisQueue = createClient();
+const redisPub = createClient();
 
 let ws: WebSocket;
 let hearbeat: NodeJS.Timeout;
@@ -27,21 +28,20 @@ function connect(): void {
     );
   });
 
-  ws.on("message", async(message) => {
+  ws.on("message", async (message) => {
     try {
       const parsedData = JSON.parse(message.toString());
       if (!parsedData.s || !parsedData.p) return; // ignore non-trade messages
-      const queueData = {
+      const tradeData = {
         symbol: parsedData.s,
         price: parsedData.p,
         quantity: parsedData.q,
         timestamp: parsedData.T,
       };
-      try {
-        await redisQueue.rPush("trades", JSON.stringify(queueData));
-      } catch (err) {
-        console.error("Failed to push to redis:", err);
-      }
+
+      await redisQueue.rPush("trades", JSON.stringify(tradeData));
+
+      await redisPub.publish("trades", JSON.stringify(tradeData));
     } catch (err) {
       console.error("Failed to parse message:", err);
     }
@@ -59,13 +59,15 @@ function connect(): void {
 }
 
 (async () => {
-  redisQueue
-    .connect()
-    .then(() => {
-      console.log("connected to redis client");
-      connect();
-    })
-    .catch((err) => {
-      console.log(`Failed to connected to redis: ${err}`);
-    });
+  try {
+    await redisQueue.connect();
+    console.log("connected to redis queue");
+
+    await redisPub.connect();
+    console.log("connected to redis pubsub");
+
+    connect();
+  } catch (err) {
+    console.error("Failed to connect: ", err);
+  }
 })();
