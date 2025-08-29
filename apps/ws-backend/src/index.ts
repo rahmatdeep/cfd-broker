@@ -1,5 +1,6 @@
 import { createClient } from "redis";
 import { WebSocket, WebSocketServer } from "ws";
+import "dotenv/config";
 
 const WS_PORT = Number(process.env.WS_PORT || 8180);
 const redisSub = createClient();
