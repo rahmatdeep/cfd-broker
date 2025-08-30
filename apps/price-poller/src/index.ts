@@ -1,6 +1,6 @@
 import { createClient } from "redis";
 import WebSocket from "ws";
-import { splitDecimal } from "./utils";
+import { createPrices } from "./utils";
 
 const redisQueue = createClient();
 const redisPub = createClient();
@@ -42,12 +42,19 @@ function connect(): void {
       // console.log(parsedData);
 
       if (!parsedData.s || !parsedData.p) return; // ignore non-trade messages
-      const buyPrice = (Number(parsedData.p) * 1.01).toString();
-      const { intValue: buyInt, decimals: buyDecimals } =
-        splitDecimal(buyPrice);
-      const sellPrice = (Number(parsedData.p) * 0.99).toString();
-      const { intValue: sellInt, decimals: sellDecimals } =
-        splitDecimal(sellPrice);
+      // const price = Number(parsedData.p).toString();
+      // const { intValue: priceInt, decimals: priceDecimal } =
+      //   splitDecimal(price);
+      // const buyPrice = (Number(parsedData.p) * 1.01).toString();
+      // const { intValue: buyInt, decimals: buyDecimals } =
+      //   splitDecimal(buyPrice);
+      // const sellPrice = (Number(parsedData.p) * 0.99).toString();
+      // const { intValue: sellInt, decimals: sellDecimals } =
+      //   splitDecimal(sellPrice);
+
+      const { originalPrice, buyPrice, sellPrice, decimals } = createPrices(
+        Number(parsedData.p)
+      );
 
       const queueData = {
         symbol: parsedData.s,
@@ -58,11 +65,10 @@ function connect(): void {
 
       const tradeData = {
         symbol: parsedData.s,
-        buyPrice: buyInt.toString(),
-        sellPrice: sellInt.toString(),
-        decimals: Number(
-          buyDecimals > sellDecimals ? buyDecimals : sellDecimals
-        ),
+        price: originalPrice.toString(),
+        buyPrice: buyPrice.toString(),
+        sellPrice: sellPrice.toString(),
+        decimals: decimals.toString(),
       };
 
       // console.log(tradeData);
