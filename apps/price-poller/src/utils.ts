@@ -12,15 +12,35 @@
 //   return { intValue, decimals };
 // }
 
-export function createPrices(price: number) {
-  const priceStr = price.toString();
-  const decimals = priceStr.includes(".") ? priceStr.split(".")[1]!.length : 0;
+// export function createPrices(price: number) {
+//   const priceStr = price.toString();
+//   const decimals = priceStr.includes(".") ? priceStr.split(".")[1]!.length : 0;
 
-  const buyPrice = price * 1.01;
-  const sellPrice = price * 0.99;
+//   const buyPrice = price * 1.01;
+//   const sellPrice = price * 0.99;
+
+//   const scaleFactor = 10 ** decimals;
+//   const originalInt = Math.round(price * scaleFactor);
+//   const buyInt = Math.round(buyPrice * scaleFactor);
+//   const sellInt = Math.round(sellPrice * scaleFactor);
+
+//   return {
+//     originalPrice: originalInt,
+//     buyPrice: buyInt,
+//     sellPrice: sellInt,
+//     decimals,
+//   };
+// }
+export function createPrices(price: number) {
+  // force price into 2 decimal places
+  const fixedPrice = Number(price.toFixed(2));
+  const decimals = 2;
+
+  const buyPrice = Number((fixedPrice * 1.01).toFixed(decimals));
+  const sellPrice = Number((fixedPrice * 0.99).toFixed(decimals));
 
   const scaleFactor = 10 ** decimals;
-  const originalInt = Math.round(price * scaleFactor);
+  const originalInt = Math.round(fixedPrice * scaleFactor);
   const buyInt = Math.round(buyPrice * scaleFactor);
   const sellInt = Math.round(sellPrice * scaleFactor);
 
@@ -28,6 +48,7 @@ export function createPrices(price: number) {
     originalPrice: originalInt,
     buyPrice: buyInt,
     sellPrice: sellInt,
-    decimals,
+    decimals, // always 2
   };
 }
+
