@@ -50,7 +50,7 @@ wss.on("connection", function (ws, req) {
 });
 
 async function listenAndSend() {
-  await redisSub.subscribe("trades", (message) => {
+  await redisSub.subscribe("updates", (message) => {
     // console.log(message);
     try {
       // let trade = JSON.parse(message);

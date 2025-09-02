@@ -13,6 +13,33 @@ let subscriptions: string[] = [
   "solusdt@trade",
 ];
 
+let tradeUpdates = [
+  {
+    symbol: "BTC",
+    price: "0",
+    sellPrice: "0",
+    buyPrice: "0",
+    decimals: "4",
+    timeStamp: "0",
+  },
+  {
+    symbol: "ETH",
+    price: "0",
+    sellPrice: "0",
+    buyPrice: "0",
+    decimals: "4",
+    timeStamp: "0",
+  },
+  {
+    symbol: "SOL",
+    price: "0",
+    sellPrice: "0",
+    buyPrice: "0",
+    decimals: "4",
+    timeStamp: "0",
+  },
+];
+
 /**
  * Connects to the binance websocket stream.
  * Subscribes to the assets from the subscriptions array.
@@ -76,6 +103,26 @@ function connect(): void {
       await redisQueue.rPush("trades", JSON.stringify(queueData));
 
       await redisPub.publish("trades", JSON.stringify(tradeData));
+
+      if (parsedData.s === "ETHUSDT" && tradeUpdates[1]) {
+        tradeUpdates[1].price = originalPrice.toString();
+        tradeUpdates[1].sellPrice = sellPrice.toString();
+        tradeUpdates[1].buyPrice = buyPrice.toString();
+        tradeUpdates[1].timeStamp = parsedData.T.toString();
+        await redisPub.publish("updates", JSON.stringify(tradeUpdates));
+      } else if (parsedData.s === "BTCUSDT" && tradeUpdates[0]) {
+        tradeUpdates[0].price = originalPrice.toString();
+        tradeUpdates[0].sellPrice = sellPrice.toString();
+        tradeUpdates[0].buyPrice = buyPrice.toString();
+        tradeUpdates[0].timeStamp = parsedData.T.toString();
+        await redisPub.publish("updates", JSON.stringify(tradeUpdates));
+      } else if (parsedData.s === "SOLUSDT" && tradeUpdates[2]) {
+        tradeUpdates[2].price = originalPrice.toString();
+        tradeUpdates[2].sellPrice = sellPrice.toString();
+        tradeUpdates[2].buyPrice = buyPrice.toString();
+        tradeUpdates[2].timeStamp = parsedData.T.toString();
+        await redisPub.publish("updates", JSON.stringify({ tradeUpdates }));
+      }
     } catch (err) {
       console.error("Failed to parse message:", err);
     }
