@@ -1,1 +1,1 @@
-{"root":["./src/index.ts","./src/routes/assets.ts","./src/routes/candles.ts","./src/routes/trade.ts","./src/routes/trades.ts","./src/routes/user.ts"],"version":"5.9.2"}
+{"root":["./src/data.ts","./src/execution.ts","./src/index.ts","./src/routes/assets.ts","./src/routes/candles.ts","./src/routes/trade.ts","./src/routes/trades.ts","./src/routes/user.ts"],"version":"5.9.2"}
