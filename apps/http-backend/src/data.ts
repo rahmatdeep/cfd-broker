@@ -152,8 +152,8 @@ export function closeOrder(inputs: closeOrderInputs) {
             user.balance += marginleft;
           }
         }
-        // console.log("open: ", openPositions);
-        // console.log("closed: ", closedPositions);
+        console.log("open: ", openPositions);
+        console.log("closed: ", closedPositions);
         return;
       } else if (completedOrder.type === "sell") {
         const priceDiff = completedOrder.openPrice - completedOrder.closePrice!;
@@ -173,8 +173,8 @@ export function closeOrder(inputs: closeOrderInputs) {
             user.balance += marginleft;
           }
         }
-        // console.log("open: ", openPositions);
-        // console.log("closed: ", closedPositions);
+        console.log("open: ", openPositions);
+        console.log("closed: ", closedPositions);
         return;
       }
     }

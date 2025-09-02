@@ -4,7 +4,7 @@ import { openPositions } from "../data";
 const router: Router = Router();
 
 router.get("/", (req, res) => {
-    /*
+  /*
     RESPONSE
     {
     trades: [
@@ -20,10 +20,10 @@ router.get("/", (req, res) => {
     ]
     }
     */
-})
+});
 
 router.get("/open", (req, res) => {
-    /*
+  /*
     RESPONSE
     {
 	trades: [
@@ -37,13 +37,25 @@ router.get("/open", (req, res) => {
 	]
     }
      */
-    const {userId} = req.body
+  const { userId } = req.body;
 
-    const userOpenOrders = openPositions.filter((i) => {
-        i.userId === userId
+  const trades = openPositions
+    .filter((i) => {
+      return i.userId === userId;
     })
-    
-})
-
+    .map(({ orderId, type, margin, leverage, openPrice, asset }) => ({
+      orderId,
+      asset,
+      type,
+      margin,
+      leverage,
+      openPrice,
+    }));
+  console.log("trades: ", trades);
+  console.log("open positions: ", openPositions);
+  res.json({
+    trades,
+  });
+});
 
 export { router as tradesRouter };
