@@ -69,6 +69,7 @@ function connect(): void {
         buyPrice: buyPrice.toString(),
         sellPrice: sellPrice.toString(),
         decimals: decimals.toString(),
+        timestamp: parsedData.T.toString(),
       };
 
       // console.log(tradeData);
