@@ -32,9 +32,9 @@
 //   };
 // }
 export function createPrices(price: number) {
-  // force price into 2 decimal places
-  const fixedPrice = Number(price.toFixed(2));
-  const decimals = 2;
+  // force price into 4 decimal places
+  const fixedPrice = Number(price.toFixed(4));
+  const decimals = 4;
 
   const buyPrice = Number((fixedPrice * 1.01).toFixed(decimals));
   const sellPrice = Number((fixedPrice * 0.99).toFixed(decimals));
@@ -48,7 +48,7 @@ export function createPrices(price: number) {
     originalPrice: originalInt,
     buyPrice: buyInt,
     sellPrice: sellInt,
-    decimals, // always 2
+    decimals, // always 4
   };
 }
 
