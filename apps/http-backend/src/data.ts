@@ -133,7 +133,7 @@ export function closeOrder(inputs: closeOrderInputs) {
   if (orderIndex !== -1) {
     let [completedOrder] = openPositions.splice(orderIndex, 1);
     if (completedOrder) {
-      completedOrder.closePrice = inputs.closePrice;
+      completedOrder.closePrice = Number(inputs.closePrice);
       if (completedOrder.type === "buy") {
         const priceDiff = completedOrder.closePrice! - completedOrder.openPrice;
         const pnl = (priceDiff / PRICE_SCALE) * completedOrder.quantity;

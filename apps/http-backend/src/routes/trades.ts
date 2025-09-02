@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { openPositions } from "../data";
+import { closedPositions, openPositions } from "../data";
 
 const router: Router = Router();
 
@@ -20,6 +20,38 @@ router.get("/", (req, res) => {
     ]
     }
     */
+  const { userId } = req.body;
+
+  const trades = closedPositions
+    .filter((i) => {
+      return i.userId === userId;
+    })
+    .map(
+      ({
+        orderId,
+        type,
+        margin,
+        leverage,
+        openPrice,
+        closePrice,
+        asset,
+        PorL,
+      }) => ({
+        orderId,
+        asset,
+        type,
+        margin,
+        leverage,
+        openPrice,
+        closePrice,
+        pnl: PorL,
+      })
+    );
+  console.log("trades: ", trades);
+  console.log("closed positions: ", closedPositions);
+  res.json({
+    trades,
+  });
 });
 
 router.get("/open", (req, res) => {
@@ -51,8 +83,8 @@ router.get("/open", (req, res) => {
       leverage,
       openPrice,
     }));
-  console.log("trades: ", trades);
-  console.log("open positions: ", openPositions);
+  //   console.log("trades: ", trades);
+  //   console.log("open positions: ", openPositions);
   res.json({
     trades,
   });
