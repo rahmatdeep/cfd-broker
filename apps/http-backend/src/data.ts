@@ -28,7 +28,7 @@ type createOrderInputs = Pick<
 
 type closeOrderInputs = Pick<Order, "orderId" | "closePrice">;
 
-const usersData: User[] = [];
+export const usersData: User[] = [];
 export const openPositions: Order[] = [];
 export const closedPositions: Order[] = [];
 
@@ -55,6 +55,8 @@ export function findUser(email: string, password: string): User | null {
   }
   return user;
 }
+
+// export function updateUserBalance(userId: string, margin: number, )
 
 export function createOrder(inputs: createOrderInputs) {
   if (inputs.type === "buy" && inputs.leverage === 1) {
@@ -138,8 +140,20 @@ export function closeOrder(inputs: closeOrderInputs) {
         const finalPnL = Math.round(pnl * MARGIN_SCALE);
         completedOrder.PorL = Math.max(-completedOrder.margin, finalPnL);
         closedPositions.push(completedOrder);
-        console.log("open: ", openPositions);
-        console.log("closed: ", closedPositions);
+        const user = usersData.find((u) => u.id === completedOrder.userId);
+        if (user) {
+          if (completedOrder.PorL > 0) {
+            user.lockedBalance -= completedOrder.margin;
+            user.balance += completedOrder.margin;
+            user.balance += completedOrder.PorL;
+          } else if (completedOrder.PorL < 0) {
+            user.lockedBalance -= completedOrder.margin;
+            let marginleft = completedOrder.margin + completedOrder.PorL; //because if loss then will be stored as -ve
+            user.balance += marginleft;
+          }
+        }
+        // console.log("open: ", openPositions);
+        // console.log("closed: ", closedPositions);
         return;
       } else if (completedOrder.type === "sell") {
         const priceDiff = completedOrder.openPrice - completedOrder.closePrice!;
@@ -147,8 +161,20 @@ export function closeOrder(inputs: closeOrderInputs) {
         const finalPnL = Math.round(pnl * MARGIN_SCALE);
         completedOrder.PorL = Math.max(-completedOrder.margin, finalPnL);
         closedPositions.push(completedOrder);
-        console.log("open: ", openPositions);
-        console.log("closed: ", closedPositions);
+        const user = usersData.find((u) => u.id === completedOrder.userId);
+        if (user) {
+          if (completedOrder.PorL > 0) {
+            user.lockedBalance -= completedOrder.margin;
+            user.balance += completedOrder.margin;
+            user.balance += completedOrder.PorL;
+          } else if (completedOrder.PorL < 0) {
+            user.lockedBalance -= completedOrder.margin;
+            let marginleft = completedOrder.margin + completedOrder.PorL; //because if loss then will be stored as -ve
+            user.balance += marginleft;
+          }
+        }
+        // console.log("open: ", openPositions);
+        // console.log("closed: ", closedPositions);
         return;
       }
     }

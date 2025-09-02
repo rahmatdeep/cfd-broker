@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { createOrder } from "../data";
+import { createOrder, usersData } from "../data";
 import { prices } from "../execution";
 
 const router: Router = Router();
@@ -46,7 +46,12 @@ router.post("/", (req, res) => {
     return;
   }
 
-  user
+  const user = usersData.find((u) => u.id === userId);
+  if (user) {
+    user.balance -= margin;
+    user.lockedBalance += margin;
+  }
+  
   const openPrice = Number(prices[asset][type]);
 
   const orderId = createOrder({
