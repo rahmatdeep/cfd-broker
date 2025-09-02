@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { createUser, findUser } from "../data";
+import { createUser, findUser, usersData } from "../data";
 
 const router: Router = Router();
 
@@ -77,6 +77,14 @@ router.get("/balance", (req, res) => {
 	"usd_balance": 500000 // Decimals is 2
     }
      */
+  const { userId } = req.body;
+  const user = usersData.find((u) => u.id === userId);
+  if (user) {
+    res.json({
+      usd_balance: user?.balance,
+    });
+    return;
+  }
 });
 
 export { router as userRouter };
