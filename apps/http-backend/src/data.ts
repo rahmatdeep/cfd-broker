@@ -57,10 +57,11 @@ export function findUser(email: string, password: string): User | null {
 }
 
 export function createOrder(inputs: createOrderInputs) {
-  let newOrder: Order;
   if (inputs.type === "buy" && inputs.leverage === 1) {
-    let quantity = (inputs.margin * inputs.leverage) / inputs.openPrice;
-    newOrder = {
+    let openPriceDecimal = inputs.openPrice / 10000;
+    let marginDecimal = inputs.margin / 100;
+    let quantity = (marginDecimal * inputs.leverage) / openPriceDecimal;
+    let newOrder = {
       orderId: uuidv4(),
       userId: inputs.userId,
       asset: inputs.asset,
@@ -74,13 +75,15 @@ export function createOrder(inputs: createOrderInputs) {
     console.log("open: ", openPositions);
     console.log("closed: ", closedPositions);
     return newOrder.orderId;
-  } else if (inputs.type === "buy" && inputs.leverage > 1){
-    let quantity = (inputs.margin * inputs.leverage) / inputs.openPrice;
-    let openPriceDecimal = inputs.openPrice / 100;
+  } else if (inputs.type === "buy" && inputs.leverage > 1) {
+    let openPriceDecimal = inputs.openPrice / 10000;
     let marginDecimal = inputs.margin / 100;
-    let autoClosePriceDecimal = openPriceDecimal - marginDecimal / quantity;
-    let autoClosePrice = Math.round(autoClosePriceDecimal * 100);
-    newOrder = {
+    let quantity = (marginDecimal * inputs.leverage) / openPriceDecimal;
+    const buffer = 0.2;
+    const maxLossDecimal = marginDecimal * (1 - buffer);
+    let autoClosePriceDecimal = openPriceDecimal - maxLossDecimal / quantity;
+    let autoClosePrice = Math.round(autoClosePriceDecimal * 10000);
+    let newOrder = {
       orderId: uuidv4(),
       userId: inputs.userId,
       asset: inputs.asset,
@@ -94,15 +97,16 @@ export function createOrder(inputs: createOrderInputs) {
     openPositions.push(newOrder);
     console.log("open: ", openPositions);
     console.log("closed: ", closedPositions);
-    return newOrder.orderId
-  }
-   else if (inputs.type === "sell") {
-    let quantity = (inputs.margin * inputs.leverage) / inputs.openPrice;
-    let openPriceDecimal = inputs.openPrice / 100;
+    return newOrder.orderId;
+  } else if (inputs.type === "sell") {
+    let openPriceDecimal = inputs.openPrice / 10000;
     let marginDecimal = inputs.margin / 100;
-    let autoClosePriceDecimal = openPriceDecimal + marginDecimal / quantity;
-    let autoClosePrice = Math.round(autoClosePriceDecimal * 100);
-    newOrder = {
+    let quantity = (marginDecimal * inputs.leverage) / openPriceDecimal;
+    const buffer = 0.2;
+    const maxLossDecimal = marginDecimal * (1 - buffer);
+    let autoClosePriceDecimal = openPriceDecimal + maxLossDecimal / quantity;
+    let autoClosePrice = Math.round(autoClosePriceDecimal * 10000);
+    let newOrder = {
       orderId: uuidv4(),
       userId: inputs.userId,
       asset: inputs.asset,
@@ -121,21 +125,27 @@ export function createOrder(inputs: createOrderInputs) {
 }
 
 export function closeOrder(inputs: closeOrderInputs) {
+  const PRICE_SCALE = 10 ** 4;
+  const MARGIN_SCALE = 10 ** 2;
   let orderIndex = openPositions.findIndex((o) => o.orderId === inputs.orderId);
   if (orderIndex !== -1) {
     let [completedOrder] = openPositions.splice(orderIndex, 1);
     if (completedOrder) {
       completedOrder.closePrice = inputs.closePrice;
       if (completedOrder.type === "buy") {
-        completedOrder.PorL =
-          completedOrder.closePrice! - completedOrder.openPrice;
+        const priceDiff = completedOrder.closePrice! - completedOrder.openPrice;
+        const pnl = (priceDiff / PRICE_SCALE) * completedOrder.quantity;
+        const finalPnL = Math.round(pnl * MARGIN_SCALE);
+        completedOrder.PorL = Math.max(-completedOrder.margin, finalPnL);
         closedPositions.push(completedOrder);
         console.log("open: ", openPositions);
         console.log("closed: ", closedPositions);
         return;
       } else if (completedOrder.type === "sell") {
-        completedOrder.PorL =
-          completedOrder.openPrice - completedOrder.closePrice!;
+        const priceDiff = completedOrder.openPrice - completedOrder.closePrice!;
+        const pnl = (priceDiff / PRICE_SCALE) * completedOrder.quantity;
+        const finalPnL = Math.round(pnl * MARGIN_SCALE);
+        completedOrder.PorL = Math.max(-completedOrder.margin, finalPnL);
         closedPositions.push(completedOrder);
         console.log("open: ", openPositions);
         console.log("closed: ", closedPositions);

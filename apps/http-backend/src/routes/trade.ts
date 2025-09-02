@@ -45,6 +45,8 @@ router.post("/", (req, res) => {
     });
     return;
   }
+
+  user
   const openPrice = Number(prices[asset][type]);
 
   const orderId = createOrder({

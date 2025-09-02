@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { openPositions } from "../data";
 
 const router: Router = Router();
 
@@ -36,6 +37,12 @@ router.get("/open", (req, res) => {
 	]
     }
      */
+    const {userId} = req.body
+
+    const userOpenOrders = openPositions.filter((i) => {
+        i.userId === userId
+    })
+    
 })
 
 
